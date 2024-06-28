@@ -30,9 +30,10 @@ $(call make-lint-dependency)
 
 # Generates the SDK
 .PHONY: sdk
-sdk: .bin/swagger
+sdk: .bin/swagger node_modules
 	swagger generate spec -m -o spec/swagger.json \
-	-c github.com/cowk8s/kratos
+	-c github.com/cowk8s/kratos \
+	-c github.com/ory/x/healthx
 
 	rm -rf internal/httpclient
 	mkdir -p internal/httpclient/
