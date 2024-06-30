@@ -5,8 +5,6 @@ package identities
 
 import (
 	"github.com/spf13/cobra"
-
-	"github.com/cowk8s/kratos/cmd/cliclient"
 )
 
 func NewGetCmd() *cobra.Command {
@@ -24,10 +22,6 @@ func NewGetIdentityCmd() *cobra.Command {
 		Short: "Get one or more identities by their ID(s)",
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			c, err := cliclient.NewClient(cmd)
-			if err != nil {
-				return err
-			}
 			return nil
 		},
 	}
