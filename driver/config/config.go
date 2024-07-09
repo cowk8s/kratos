@@ -10,6 +10,9 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/ory/x/configx"
 	"github.com/ory/x/contextx"
@@ -18,6 +21,7 @@ import (
 )
 
 const (
+	DefaultBrowserReturnURL              = "default_browser_return_url"
 	ViperKeyAdminSocketOwner             = "serve.admin.socket.owner"
 	ViperKeyAdminSocketGroup             = "serve.admin.socket.group"
 	ViperKeyAdminSocketMode              = "serve.admin.socket.mode"
@@ -35,6 +39,10 @@ const (
 	ViperKeyPublicBaseURL = "serve.public.base_url"
 	ViperKeyPublicPort    = "serve.public.port"
 	ViperKeyPublicHost    = "serve.public.host"
+
+	ViperKeySelfServiceBrowserDefaultReturnTo = "selfservice." + DefaultBrowserReturnURL
+
+	ViperKeyOAuth2ProviderURL = "oauth2_provider.url"
 )
 
 type (
@@ -193,4 +201,54 @@ func (p *Config) getTLSCertificates(ctx context.Context, daemon, certBase64, key
 
 func (p *Config) GetProvider(ctx context.Context) *configx.Provider {
 	return p.c.Config(ctx, p.p)
+}
+
+func (p *Config) SelfServiceBrowserDefaultReturnTo(ctx context.Context) *url.URL {
+	return p.ParseAbsoluteOrRelativeURIOrFail(ctx, ViperKeySelfServiceBrowserDefaultReturnTo)
+}
+
+func splitUrlAndFragment(s string) (string, string) {
+	i := strings.IndexByte(s, '#')
+	if i < 0 {
+		return s, ""
+	}
+	return s[:i], s[i+1:]
+}
+
+func (p *Config) ParseAbsoluteOrRelativeURIOrFail(ctx context.Context, key string) *url.URL {
+	parsed, err := p.ParseAbsoluteOrRelativeURI(p.GetProvider(ctx).String(key))
+	if err != nil {
+		p.l.WithError(errors.WithStack(err)).
+			Fatalf("Configuration value from key %s is not a valid URL: %s", key, p.GetProvider(ctx).String(key))
+	}
+	return parsed
+}
+
+func (p *Config) ParseAbsoluteOrRelativeURI(rawUrl string) (*url.URL, error) {
+	u, frag := splitUrlAndFragment(rawUrl)
+	parsed, err := url.ParseRequestURI(u)
+	if err != nil {
+		return nil, errors.Wrapf(err, "configuration value not a valid URL: %s", rawUrl)
+	}
+
+	if frag != "" {
+		parsed.Fragment = frag
+	}
+
+	return parsed, nil
+}
+
+func (p *Config) OAuth2ProviderURL(ctx context.Context) *url.URL {
+	k := ViperKeyOAuth2ProviderURL
+	v := p.GetProvider(ctx).String(k)
+	if v == "" {
+		return nil
+	}
+	parsed, err := p.ParseAbsoluteOrRelativeURI(v)
+	if err != nil {
+		p.l.WithError(errors.WithStack(err)).
+			Errorf("Configuration value from key %s is not a valid URL: %s", k, v)
+		return nil
+	}
+	return parsed
 }
