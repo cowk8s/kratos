@@ -15,6 +15,7 @@ import (
 type Flow interface {
 	GetID() uuid.UUID
 	GetType() Type
+	GetRequestURL() string
 }
 
 type FlowWithRedirect interface {

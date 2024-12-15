@@ -3,7 +3,6 @@
 
 package identity
 
-const (
-	AddressTypeEmail = "email"
-	AddressTypeSMS   = "sms"
+type (
+	Manager struct{}
 )

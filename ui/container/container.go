@@ -39,3 +39,12 @@ type Container struct {
 	// Messages contains all global form messages and errors.
 	Messages text.Messages `json:"messages,omitempty"`
 }
+
+// New returns an empty container.
+func New(action string) *Container {
+	return &Container{
+		Action: action,
+		Method: "POST",
+		Nodes:  node.Nodes{},
+	}
+}

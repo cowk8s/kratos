@@ -3,9 +3,18 @@
 
 package x
 
-import "github.com/ory/x/logrusx"
+import (
+	"context"
+
+	"github.com/ory/x/logrusx"
+	"github.com/ory/x/otelx"
+)
 
 type LoggingProvider interface {
 	Logger() *logrusx.Logger
 	Audit() *logrusx.Logger
+}
+
+type TracingProvider interface {
+	Tracer(ctx context.Context) *otelx.Tracer
 }

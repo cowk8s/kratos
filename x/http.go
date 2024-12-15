@@ -8,9 +8,14 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/ory/x/httpx"
+
 	"github.com/hashicorp/go-retryablehttp"
 
-	"github.com/ory/x/httpx"
+	"github.com/golang/gddo/httputil"
+
+	"github.com/ory/herodot"
+
 	"github.com/ory/x/stringsx"
 )
 
@@ -30,6 +35,34 @@ func RequestURL(r *http.Request) *url.URL {
 	}
 
 	return &source
+}
+
+func AcceptToRedirectOrJSON(
+	w http.ResponseWriter, r *http.Request, writer herodot.Writer, out interface{}, redirectTo string,
+) {
+	switch httputil.NegotiateContentType(r, []string{
+		"text/html",
+		"application/json",
+	}, "text/html") {
+	case "application/json":
+		if err, ok := out.(error); ok {
+			writer.WriteError(w, r, err)
+			return
+		}
+
+		writer.Write(w, r, out)
+	case "text/html":
+		fallthrough
+	default:
+		http.Redirect(w, r, redirectTo, http.StatusSeeOther)
+	}
+}
+
+func AcceptsJSON(r *http.Request) bool {
+	return httputil.NegotiateContentType(r, []string{
+		"text/html",
+		"application/json",
+	}, "text/html") == "application/json"
 }
 
 type HTTPClientProvider interface {

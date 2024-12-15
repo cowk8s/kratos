@@ -14,6 +14,23 @@ const (
 	Script UiNodeType = "script"
 )
 
+// swagger:enum UiNodeGroup
+type UiNodeGroup string
+
+const (
+	DefaultGroup         UiNodeGroup = "default"
+	PasswordGroup        UiNodeGroup = "password"
+	OpenIDConnectGroup   UiNodeGroup = "oidc"
+	ProfileGroup         UiNodeGroup = "profile"
+	LinkGroup            UiNodeGroup = "link"
+	CodeGroup            UiNodeGroup = "code"
+	TOTPGroup            UiNodeGroup = "totp"
+	LookupGroup          UiNodeGroup = "lookup_secret"
+	WebAuthnGroup        UiNodeGroup = "webauthn"
+	PasskeyGroup         UiNodeGroup = "passkey"
+	IdentifierFirstGroup UiNodeGroup = "identifier_first"
+)
+
 type Nodes []Node
 
 // Node represents a flow's nodes
@@ -27,4 +44,9 @@ type Node struct {
 	//
 	// required: true
 	Type UiNodeType `json:"type" faker:"-"`
+
+	// Group specifies which group (e.g. password authenticator) this node belongs to.
+	//
+	// required: true
+	Group UiNodeGroup `json:"group"`
 }

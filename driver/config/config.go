@@ -21,6 +21,7 @@ import (
 )
 
 const (
+	DefaultIdentityTraitsSchemaID        = "default"
 	DefaultBrowserReturnURL              = "default_browser_return_url"
 	ViperKeyAdminSocketOwner             = "serve.admin.socket.owner"
 	ViperKeyAdminSocketGroup             = "serve.admin.socket.group"
@@ -30,6 +31,9 @@ const (
 	ViperKeyPublicTLSCertPath            = "serve.public.tls.cert.path"
 	ViperKeyPublicTLSKeyPath             = "serve.public.tls.key.path"
 	ViperKeyDisableAdminHealthRequestLog = "serve.admin.request_log.disable_for_health"
+
+	ViperKeyDefaultIdentitySchemaID = "identity.default_schema_id"
+	ViperKeyIdentitySchemas         = "identity.schemas"
 
 	ViperKeyAdminTLSCertBase64 = "serve.admin.tls.cert.base64"
 	ViperKeyAdminTLSKeyBase64  = "serve.admin.tls.key.base64"
@@ -52,6 +56,11 @@ type (
 		c           contextx.Contextualizer
 		stdOutOrErr io.Writer
 	}
+	Schema struct {
+		ID  string `json:"id" koanf:"id"`
+		URL string `json:"url" koanf:"url"`
+	}
+	Schemas []Schema
 
 	Provider interface {
 		Config() *Config
@@ -75,6 +84,18 @@ func (p *Config) listenOn(ctx context.Context, key string) string {
 	}
 
 	return configx.GetAddress(pp.String("serve."+key+".host"), port)
+}
+
+func (p *Config) DefaultIdentityTraitsSchemaID(ctx context.Context) string {
+	return p.GetProvider(ctx).String(ViperKeyDefaultIdentitySchemaID)
+}
+
+func (p *Config) IdentityTraitsSchemas(ctx context.Context) (ss Schemas, err error) {
+	if err = p.GetProvider(ctx).Koanf.Unmarshal(ViperKeyIdentitySchemas, &ss); err != nil {
+		return ss, nil
+	}
+
+	return ss, nil
 }
 
 func (p *Config) AdminListenOn(ctx context.Context) string {

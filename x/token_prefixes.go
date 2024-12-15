@@ -1,9 +1,9 @@
 // Copyright © 2023 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 
-package identity
+package x
 
 const (
-	AddressTypeEmail = "email"
-	AddressTypeSMS   = "sms"
+	OrySessionToken = "ory_st_"
+	OryLogoutToken  = "ory_lo_"
 )
